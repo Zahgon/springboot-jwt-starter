@@ -22,3 +22,10 @@ dist/
 nbdist/
 .nb-gradle/
 /pom.xml
+
+
+truth.md
+instruction.md
+fix.patch
+test.patch
+golden.patch

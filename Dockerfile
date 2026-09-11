@@ -1,16 +1,16 @@
-FROM maven AS maven-container
+FROM golang:1.27-alpine AS build-container
 
-RUN mkdir /usr/src/app
+# WORKDIR creates the directory; the alpine base has no /usr/src to mkdir into.
 WORKDIR /usr/src/app
 
-COPY pom.xml .
-RUN mvn -B -f pom.xml -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN mvn -B -s /usr/share/maven/ref/settings-docker.xml package
+RUN CGO_ENABLED=0 go build -o /usr/src/app/springboot-jwt-starter .
 
-FROM openjdk:17-alpine
+FROM alpine:3.20
 RUN adduser -Dh /home/bfwg bfwg
 WORKDIR /app
-COPY --from=maven-container /usr/src/app/target/demo-0.1.0-SNAPSHOT.jar .
-ENTRYPOINT ["java", "-jar", "/app/demo-0.1.0-SNAPSHOT.jar"]
-
+COPY --from=build-container /usr/src/app/springboot-jwt-starter .
+USER bfwg
+ENTRYPOINT ["/app/springboot-jwt-starter"]
